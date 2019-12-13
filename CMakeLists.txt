@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.5)
+if(MSVC)
+  cmake_minimum_required(VERSION 3.9)
+else()
+  cmake_minimum_required(VERSION 3.5)
+endif()
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules/ExtractMetaData.cmake)
 project(${EXTRACTED_NAME} VERSION ${EXTRACTED_VERSION} LANGUAGES CXX)
@@ -34,7 +38,11 @@ set(EgmProtoFiles proto/egm.proto proto/egm_wrapper.proto proto/egm_wrapper_traj
 if(NOT QUIET)
   message(STATUS "Generating protobuf C++ for: ${EgmProtoFiles}")
 endif()
-protobuf_generate_cpp(EgmProtoSources EgmProtoHeaders ${EgmProtoFiles})
+if(MSVC)
+  protobuf_generate_cpp(EgmProtoSources EgmProtoHeaders EXPORT_MACRO ABB_LIBEGM_STATIC_DEFINE ${EgmProtoFiles})
+else()
+  protobuf_generate_cpp(EgmProtoSources EgmProtoHeaders ${EgmProtoFiles})
+endif()
 
 ##---------##
 ## Threads ##
@@ -97,6 +105,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 if(NOT BUILD_SHARED_LIBS)
   target_compile_definitions(${PROJECT_NAME} PUBLIC "ABB_LIBEGM_STATIC_DEFINE")
+endif()
+
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} PUBLIC "/FI${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_export.h")
 endif()
 
 ################
