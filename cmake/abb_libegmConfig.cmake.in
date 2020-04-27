@@ -7,6 +7,14 @@ include(CMakeFindDependencyMacro)
 # Find dependencies
 find_dependency(Threads REQUIRED)
 find_dependency(Boost REQUIRED COMPONENTS regex system thread)
+if(WIN32)
+  # For a Chocolatey-based ROS/ROS2 installation, then it appears that the protobuf compiler is
+  # by default installed at ${_CMAKE_INSTALL_DIR}/tools/protobuf, and find_dependency() doesn't
+  # always seem to find the compiler without specifying a hint.
+  find_dependency(Protobuf REQUIRED HINTS ${_CMAKE_INSTALL_DIR}/tools/protobuf)
+else()
+  find_dependency(Protobuf REQUIRED)
+endif()
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
