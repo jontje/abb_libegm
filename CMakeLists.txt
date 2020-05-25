@@ -45,7 +45,11 @@ set(EgmProtoFiles proto/egm.proto proto/egm_wrapper.proto proto/egm_wrapper_traj
 if(NOT QUIET)
   message(STATUS "Generating protobuf C++ for: ${EgmProtoFiles}")
 endif()
-protobuf_generate_cpp(EgmProtoSources EgmProtoHeaders ${EgmProtoFiles})
+if(MSVC)
+  protobuf_generate_cpp(EgmProtoSources EgmProtoHeaders EXPORT_MACRO ABB_LIBEGM_EXPORT ${EgmProtoFiles})
+else()
+  protobuf_generate_cpp(EgmProtoSources EgmProtoHeaders ${EgmProtoFiles})
+endif()
 
 #############
 ## Threads ##
@@ -98,6 +102,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 if(NOT BUILD_SHARED_LIBS)
   target_compile_definitions(${PROJECT_NAME} PUBLIC "ABB_LIBEGM_STATIC_DEFINE")
+endif()
+
+if(MSVC)
+  # Force include export header.
+  target_compile_options(${PROJECT_NAME} PUBLIC "/FI${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_export.h")
 endif()
 
 #############
